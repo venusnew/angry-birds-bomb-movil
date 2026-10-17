@@ -1,20 +1,39 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angry Birds Bomb Movil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Angry Birds Bomb</title>
+
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
-    <script src="https://apis.google.com/js/platform.js"></script>
 
     <style>
-        body, html {
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background: #111;
+        }
+
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameArea {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
         }
 
         ruffle-player {
@@ -25,29 +44,30 @@
 
         #spaceControls {
             display: none;
-            position: fixed;
-            bottom: 8px;
-            left: 0;
+            flex: 0 0 auto;
             width: 100%;
-            z-index: 9999;
+            padding: 8px 14px calc(12px + env(safe-area-inset-bottom));
+            background: #1c1c1c;
+            border-top: 1px solid #383838;
             text-align: center;
-            pointer-events: none;
+            touch-action: manipulation;
         }
 
         #spaceButton {
-            pointer-events: auto;
-            width: 170px;
-            max-width: 65%;
-            height: 42px;
-            background: rgba(247, 203, 77, 0.92);
+            display: block;
+            width: 100%;
+            max-width: 440px;
+            height: 58px;
+            margin: 0 auto;
+            border: 2px solid #d5a329;
+            border-radius: 10px;
+            background: linear-gradient(#ffe477, #f7cb4d);
+            box-shadow: 0 4px 0 #98751c;
             color: #222;
-            border: 1px solid #d5a329;
-            border-radius: 8px;
             font-family: Arial, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.22);
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 2px;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
@@ -56,8 +76,15 @@
 
         #spaceButton:active,
         #spaceButton.pressed {
-            background: #e8b82f;
-            transform: translateY(1px);
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #98751c;
+            background: #f0b923;
+        }
+
+        #spaceHint {
+            margin: 8px 0 0;
+            color: #bbb;
+            font: 12px Arial, sans-serif;
         }
 
         @media (hover: none) and (pointer: coarse) {
@@ -67,15 +94,23 @@
         }
     </style>
 </head>
-<body>
-    <!-- Contenedor original del juego: escala sin cambios -->
-    <div class="game-container" id="gameContainer">
-        <embed src="Angry Birds Bomb.swf" id="gameEmbed" width="100%" height="100%">
-    </div>
 
-    <!-- Botón táctil de barra espaciadora -->
-    <div id="spaceControls">
-        <button type="button" id="spaceButton">␣ SPACE</button>
+<body>
+    <div id="gameContainer">
+        <div id="gameArea">
+            <embed
+                src="Angry Birds Bomb.swf"
+                id="gameEmbed"
+                width="100%"
+                height="100%">
+        </div>
+
+        <div id="spaceControls">
+            <button type="button" id="spaceButton">
+                ␣ &nbsp; SPACE
+            </button>
+            <p id="spaceHint">Toca para activar la barra espaciadora</p>
+        </div>
     </div>
 
     <script>
@@ -85,11 +120,11 @@
         let spacePressed = false;
 
         function sendSpace(type) {
-            const targets = [
-                document.activeElement,
-                gameEmbed,
-                document
-            ];
+            /*
+             * Intentamos entregar el evento al reproductor.
+             * Los eventos sintéticos pueden ser ignorados por Ruffle.
+             */
+            const targets = [document.activeElement, gameEmbed, document];
 
             for (const target of targets) {
                 if (!target || typeof target.dispatchEvent !== "function") {
@@ -135,4 +170,73 @@
     </script>
 </body>
 </html>
+<!-- BOTÓN SPACE -->
+<div id="spaceControls" style="display:none;position:fixed;bottom:8px;left:0;width:100%;z-index:9999;text-align:center;pointer-events:none;">
+  <button type="button" id="spaceButton" style="pointer-events:auto;width:170px;max-width:65%;height:42px;background:rgba(247,203,77,0.92);color:#222;border:1px solid #d5a329;border-radius:8px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;letter-spacing:1px;box-shadow:0 2px 5px rgba(0,0,0,0.22);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;">
+    ␣ SPACE
+  </button>
+</div>
 
+<style>
+@media (hover: none) and (pointer: coarse) {
+  #spaceControls { display:block !important; }
+}
+#spaceButton:active,
+#spaceButton.pressed {
+  background:#e8b82f !important;
+  transform:translateY(1px);
+}
+</style>
+
+<script>
+(function() {
+  const button = document.getElementById("spaceButton");
+  if (!button || button.dataset.ready) return;
+  button.dataset.ready = "true";
+
+  let pressed = false;
+
+  function sendKey(type) {
+    const event = new KeyboardEvent(type, {
+      key: " ",
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+      bubbles: true,
+      cancelable: true
+    });
+
+    document.dispatchEvent(event);
+    window.dispatchEvent(new KeyboardEvent(type, {
+      key: " ",
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+      bubbles: true,
+      cancelable: true
+    }));
+  }
+
+  button.addEventListener("pointerdown", function(e) {
+    e.preventDefault();
+    if (pressed) return;
+    pressed = true;
+    button.classList.add("pressed");
+    sendKey("keydown");
+  });
+
+  function release() {
+    if (!pressed) return;
+    pressed = false;
+    button.classList.remove("pressed");
+    sendKey("keyup");
+  }
+
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  window.addEventListener("blur", release);
+  document.addEventListener("visibilitychange", function() {
+    if (document.hidden) release();
+  });
+})();
+</script>
