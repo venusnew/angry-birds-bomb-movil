@@ -1,0 +1,172 @@
+﻿
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Angry Birds Bomb</title>
+
+    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #111;
+        }
+
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameArea {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        ruffle-player {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #spaceControls {
+            display: none;
+            flex: 0 0 auto;
+            width: 100%;
+            padding: 8px 14px calc(12px + env(safe-area-inset-bottom));
+            background: #1c1c1c;
+            border-top: 1px solid #383838;
+            text-align: center;
+            touch-action: manipulation;
+        }
+
+        #spaceButton {
+            display: block;
+            width: 100%;
+            max-width: 440px;
+            height: 58px;
+            margin: 0 auto;
+            border: 2px solid #d5a329;
+            border-radius: 10px;
+            background: linear-gradient(#ffe477, #f7cb4d);
+            box-shadow: 0 4px 0 #98751c;
+            color: #222;
+            font-family: Arial, sans-serif;
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #spaceButton:active,
+        #spaceButton.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #98751c;
+            background: #f0b923;
+        }
+
+        #spaceHint {
+            margin: 8px 0 0;
+            color: #bbb;
+            font: 12px Arial, sans-serif;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            #spaceControls {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameContainer">
+        <div id="gameArea">
+            <embed
+                src="Angry Birds Bomb.swf"
+                id="gameEmbed"
+                width="100%"
+                height="100%">
+        </div>
+
+        <div id="spaceControls">
+            <button type="button" id="spaceButton">
+                ␣ &nbsp; SPACE
+            </button>
+            <p id="spaceHint">Toca para activar la barra espaciadora</p>
+        </div>
+    </div>
+
+    <script>
+        const spaceButton = document.getElementById("spaceButton");
+        const gameEmbed = document.getElementById("gameEmbed");
+
+        let spacePressed = false;
+
+        function sendSpace(type) {
+            /*
+             * Intentamos entregar el evento al reproductor.
+             * Los eventos sintéticos pueden ser ignorados por Ruffle.
+             */
+            const targets = [document.activeElement, gameEmbed, document];
+
+            for (const target of targets) {
+                if (!target || typeof target.dispatchEvent !== "function") {
+                    continue;
+                }
+
+                target.dispatchEvent(new KeyboardEvent(type, {
+                    key: " ",
+                    code: "Space",
+                    keyCode: 32,
+                    which: 32,
+                    bubbles: true,
+                    cancelable: true
+                }));
+            }
+        }
+
+        spaceButton.addEventListener("pointerdown", function(event) {
+            event.preventDefault();
+
+            if (spacePressed) return;
+
+            spacePressed = true;
+            spaceButton.classList.add("pressed");
+            sendSpace("keydown");
+        });
+
+        function releaseSpace() {
+            if (!spacePressed) return;
+
+            spacePressed = false;
+            spaceButton.classList.remove("pressed");
+            sendSpace("keyup");
+        }
+
+        spaceButton.addEventListener("pointerup", releaseSpace);
+        spaceButton.addEventListener("pointercancel", releaseSpace);
+        window.addEventListener("blur", releaseSpace);
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) releaseSpace();
+        });
+    </script>
+</body>
+</html>
