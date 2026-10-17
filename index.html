@@ -1,4 +1,4 @@
-﻿
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -44,30 +44,35 @@
 
         #spaceControls {
             display: none;
-            flex: 0 0 auto;
+            position: fixed;
+            bottom: 8px;
+            left: 0;
             width: 100%;
-            padding: 8px 14px calc(12px + env(safe-area-inset-bottom));
-            background: #1c1c1c;
-            border-top: 1px solid #383838;
+            z-index: 9999;
             text-align: center;
+            background: transparent;
+            border: none;
+            padding: 0;
+            pointer-events: none;
             touch-action: manipulation;
         }
 
         #spaceButton {
             display: block;
-            width: 100%;
-            max-width: 440px;
-            height: 58px;
+            width: 170px;
+            max-width: 65%;
+            height: 42px;
             margin: 0 auto;
-            border: 2px solid #d5a329;
-            border-radius: 10px;
-            background: linear-gradient(#ffe477, #f7cb4d);
-            box-shadow: 0 4px 0 #98751c;
+            border: 1px solid #d5a329;
+            border-radius: 8px;
+            background: rgba(247, 203, 77, 0.92);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
             color: #222;
             font-family: Arial, sans-serif;
-            font-size: 17px;
-            font-weight: 900;
-            letter-spacing: 2px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            pointer-events: auto;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
@@ -76,15 +81,12 @@
 
         #spaceButton:active,
         #spaceButton.pressed {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #98751c;
-            background: #f0b923;
+            background: #e8b82f;
+            transform: translateY(1px);
         }
 
         #spaceHint {
-            margin: 8px 0 0;
-            color: #bbb;
-            font: 12px Arial, sans-serif;
+            display: none;
         }
 
         @media (hover: none) and (pointer: coarse) {
@@ -120,10 +122,6 @@
         let spacePressed = false;
 
         function sendSpace(type) {
-            /*
-             * Intentamos entregar el evento al reproductor.
-             * Los eventos sintéticos pueden ser ignorados por Ruffle.
-             */
             const targets = [document.activeElement, gameEmbed, document];
 
             for (const target of targets) {
@@ -170,73 +168,3 @@
     </script>
 </body>
 </html>
-<!-- BOTÓN SPACE -->
-<div id="spaceControls" style="display:none;position:fixed;bottom:8px;left:0;width:100%;z-index:9999;text-align:center;pointer-events:none;">
-  <button type="button" id="spaceButton" style="pointer-events:auto;width:170px;max-width:65%;height:42px;background:rgba(247,203,77,0.92);color:#222;border:1px solid #d5a329;border-radius:8px;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;letter-spacing:1px;box-shadow:0 2px 5px rgba(0,0,0,0.22);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;">
-    ␣ SPACE
-  </button>
-</div>
-
-<style>
-@media (hover: none) and (pointer: coarse) {
-  #spaceControls { display:block !important; }
-}
-#spaceButton:active,
-#spaceButton.pressed {
-  background:#e8b82f !important;
-  transform:translateY(1px);
-}
-</style>
-
-<script>
-(function() {
-  const button = document.getElementById("spaceButton");
-  if (!button || button.dataset.ready) return;
-  button.dataset.ready = "true";
-
-  let pressed = false;
-
-  function sendKey(type) {
-    const event = new KeyboardEvent(type, {
-      key: " ",
-      code: "Space",
-      keyCode: 32,
-      which: 32,
-      bubbles: true,
-      cancelable: true
-    });
-
-    document.dispatchEvent(event);
-    window.dispatchEvent(new KeyboardEvent(type, {
-      key: " ",
-      code: "Space",
-      keyCode: 32,
-      which: 32,
-      bubbles: true,
-      cancelable: true
-    }));
-  }
-
-  button.addEventListener("pointerdown", function(e) {
-    e.preventDefault();
-    if (pressed) return;
-    pressed = true;
-    button.classList.add("pressed");
-    sendKey("keydown");
-  });
-
-  function release() {
-    if (!pressed) return;
-    pressed = false;
-    button.classList.remove("pressed");
-    sendKey("keyup");
-  }
-
-  button.addEventListener("pointerup", release);
-  button.addEventListener("pointercancel", release);
-  window.addEventListener("blur", release);
-  document.addEventListener("visibilitychange", function() {
-    if (document.hidden) release();
-  });
-})();
-</script>
